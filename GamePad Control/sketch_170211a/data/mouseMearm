@@ -1,0 +1,5 @@
+MeArm control
+X	x position	3	SLIDER	X-axis	0	1.0	0.0
+Y	y position	3	SLIDER	Y-axis	0	1.0	0.0
+Z	z position	3	SLIDER	Wheel	0	1.0	0.0
+BtnLeft	Left button	1	BUTTON	Button 0	0	0.0	0.0
