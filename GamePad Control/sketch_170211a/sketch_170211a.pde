@@ -39,7 +39,7 @@ void setup() {
   slZ = device.getSlider("Z");
   button = device.getButton("BtnLeft");
 
-  myPort = new Serial(this, "COM3", 115200);
+  myPort = new Serial(this, "COM3", 9600);
   myPort.bufferUntil('\n');
 }
 

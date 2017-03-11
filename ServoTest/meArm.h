@@ -23,6 +23,10 @@ struct ServoInfo {
     float zero;         // Theoretical PWM for zero angle
 };
 
+enum Direction{
+  none, up, down, left, right
+};
+
 enum Axis {
    x, y, z
 };

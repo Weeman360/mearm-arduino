@@ -26,7 +26,7 @@ int nextAxis = 0;
 int arms[] = {110, 110, 150};
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   pinMode(phots[0], INPUT);
   pinMode(phots[1], INPUT);
@@ -75,7 +75,7 @@ void checkTogglePhotos(int incoming) {
   }
 }
 
-void checkToggleClaw(int incoming){
+void checkToggleClaw(int incoming) {
   if (incoming == byte_claw) {
     toggleGripper();
   }
@@ -136,17 +136,31 @@ void toggleGripper() {
 void readPhotos() {
   if (photosIsActive) {
     const int range = 100;
-    int lr0 = analogRead(phots[0]);
-    int lr1 = analogRead(phots[1]);
-    int lr2 = analogRead(phots[2]);
-    int x = map(photosAvg[0] - lr0, -range, range, limits[0][0], limits[0][1]);
-    int y = map(photosAvg[1] - lr1, -range, range, limits[1][0], limits[1][1]);
-    int z = map(photosAvg[2] - lr2, -range, range, limits[2][0], limits[2][1]);
+    const int lr0 = analogRead(phots[0]);
+    const int lr1 = analogRead(phots[1]);
+    const int lr2 = analogRead(phots[2]);
+    const int redX = map(photosAvg[0] - lr0, -range, range, limits[0][0], limits[0][1]);
+    const int redY = map(photosAvg[1] - lr1, -range, range, limits[1][0], limits[1][1]);
+    const int redZ = map(photosAvg[2] - lr2, -range, range, limits[2][0], limits[2][1]);
 
-    //  if (arm.isReachable(x, y, z)) {
-    //    arm.gotoPoint(x, y, z);
-    //  }
-    Serial.println("R PR");
+    const int movement = 1;
+    switch (calculatePhotoDirection(redX, redY, redZ)) {
+      case up: {
+          //          arm.moveBy(y, movement);
+        }
+      case down: {
+          //          arm.moveBy(y, movement * -1);
+        }
+      case left: {
+          arm.moveBy(x, movement);
+        }
+      case right: {
+          arm.moveBy(x, movement * -1);
+        }
+      case none: {
+          break;
+        }
+    }
     delay(50);
   }
 }
@@ -164,10 +178,10 @@ void startPhotoResistors() {
     for (int j = 0; j < 3; j++) {
       int lightReading = analogRead(phots[j]);
       photosAvg[j] += lightReading;
-//      Serial.print(photosAvg[j], DEC);
-//      Serial.print("\t");
+      //      Serial.print(photosAvg[j], DEC);
+      //      Serial.print("\t");
     }
-//    Serial.println("\n============================");
+    //    Serial.println("\n============================");
     delay(100);
   }
   for (int i = 0; i < 3; i++) {
@@ -183,4 +197,41 @@ void startPhotoResistors() {
 void stopPhotoResistors() {
   photosIsActive = false;
 }
+
+Direction calculatePhotoDirection(float x, float y, float z) {
+  const float f = 1.5;
+  const float thresh = 10;
+
+  float deltas[] = {x - photosAvg[0], y - photosAvg[1], z - photosAvg[2]};
+  int maxDelta = 0;
+  int maxIndex = -1;
+  for (int i; i < 3; i++) {
+    if (fabs(deltas[i]) > maxDelta) {
+      maxDelta = deltas[i];
+      maxIndex = i;
+      Serial.println(maxIndex);
+    }
+  }
+
+  Serial.println(maxIndex);
+  delay(100);
+  switch (maxIndex) {
+    case 0: {
+        Serial.println("left");
+        return left;
+      }
+    case 1: {
+        Serial.println("up");
+        return up;
+      }
+    case 2: {
+        Serial.println("right");
+        return right;
+      }
+    case -1: {
+        return none;
+      }
+  }
+}
+
 
