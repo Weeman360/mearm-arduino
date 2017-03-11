@@ -23,6 +23,8 @@ static int click = 36;
 static int moveX = 88;
 static int moveY = 89;
 static int moveZ = 90;
+static int power = 115;
+static int photos = 108;
 
 void setup() {
   size(640, 360);
@@ -44,7 +46,7 @@ void setup() {
 void draw() { 
   readSerialPort();
   //checkMouseMovement();
-  checkMouseClicks();
+  //checkMouseClicks();
   //delay(50);
 }
 
@@ -65,6 +67,7 @@ void checkMouseMovement() {
   }
 }
 
+
 void writeDirection(int dir, boolean positive) {
   myPort.write(dir);
   if (positive) {
@@ -80,24 +83,39 @@ void checkMouseClicks() {
   }
 }
 
+void togglePower() {
+  myPort.write(power);
+}
+
+void togglePhotoResistors() {
+  myPort.write(photos);
+}
+
 void keyPressed() {
   if (key == 'a') 
     writeDirection(moveX, false);  
-  
+
   if (key == 'd') 
     writeDirection(moveX, true);  
-  
+
   if (key == 'w') 
     writeDirection(moveY, true);
-  
+
   if (key == 's')
     writeDirection(moveY, false);
-  
+
   if (key == 'r') 
     writeDirection(moveZ, true);
-  
+
   if (key == 'f') 
     writeDirection(moveZ, false);
+
+  if (key == 'p')
+    togglePower();
+
+  if (key == 'l') {
+    togglePhotoResistors();
+  }
 }
 
 void readSerialPort() {

@@ -92,6 +92,40 @@ void meArm::gotoPoint(float x, float y, float z) {
   delay(100);
 }
 
+// Personal additions
+// ----------------------------------
+void meArm::stopArm(){
+   if (_base.attached()){
+      _base.detach();
+   }
+   if (_shoulder.attached()){
+      _shoulder.detach();
+   }
+   if (_elbow.attached()){
+      _elbow.detach();
+   }
+   if (_gripper.attached()){
+      _gripper.detach();
+   }
+}
+
+bool meArm::isPoweredOn(){
+  return _base.attached() && _shoulder.attached() && _elbow.attached() && _gripper.attached();
+}
+
+void meArm::unsafeGoToPoint(float x, float y, float z){
+  _base.write(x);
+  _shoulder.write(y);
+  _elbow.write(z);
+
+  _x = x; _y = y; _z = z;
+  delay(100);
+}
+
+void meArm::moveBy(Axis a, float value){
+  
+}
+
 //Check to see if possible
 bool meArm::isReachable(float x, float y, float z) {
   float radBase,radShoulder,radElbow;

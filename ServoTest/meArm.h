@@ -23,6 +23,10 @@ struct ServoInfo {
     float zero;         // Theoretical PWM for zero angle
 };
 
+enum Axis {
+   x, y, z
+};
+
 class meArm {
   public:
     //Full constructor uses calibration data, or can just give pins
@@ -34,6 +38,7 @@ class meArm {
     void begin(int pinBase, int pinShoulder, int pinElbow, int pinGripper);
     //Travel smoothly from current point to another point
     void gotoPoint(float x, float y, float z);
+    
     //Set servos to reach a certain point directly without caring how we get there 
     void goDirectlyTo(float x, float y, float z);
     //Grab something
@@ -46,11 +51,24 @@ class meArm {
     float getX();
     float getY();
     float getZ();
+    
+    // Personal alterations
+    // --------------------------------
+
+    // Stop all servos
+    void stopArm();
+    // returns whether servos are attached or not
+    bool isPoweredOn();    
+    // control servos directly with no maths
+    void unsafeGoToPoint(float x, float y, float z);
+    // Move an axis by a certain value
+    void moveBy(Axis a, float value);    
   private:
     float _x, _y, _z;
     Servo _base, _shoulder, _elbow, _gripper;
     ServoInfo _svoBase, _svoShoulder, _svoElbow, _svoGripper;
     int _pinBase, _pinShoulder, _pinElbow, _pinGripper;
+
 };
 
 #endif

@@ -7,19 +7,23 @@
 #define byte_click 36
 #define byte_plus 43
 #define byte_minus 45
+#define byte_power 115
+#define byte_photo 108
 
 meArm arm;
 const int button = 2;
+const int servos[] = {11, 10, 9, 6};
 const int phots[] = { A0, A1, A2 };
-const int limits[3][2] = {{ -110, 55}, {10, 110}, {0, 200}};
+const int limits[3][2] = {{ 10, 180}, {10, 180}, {10, 180}};
 const int calaCount = 30;
 
 int photosAvg[3] = {};
+bool photosIsActive = false;
 bool gripperOpen = false;
 int incomingByte = 0;
 int nextAxis = 0;
 
-int arms[] = {30, 110, 150};
+int arms[] = {110, 110, 150};
 
 void setup() {
   Serial.begin(115200);
@@ -29,23 +33,47 @@ void setup() {
   pinMode(phots[2], INPUT);
   pinMode(button, INPUT);
 
-  calibratePhotoResistors();
-  //arm = new meArm();
-  arm.begin(11, 10, 9, 6);
+  arm.begin(servos[0], servos[1], servos[2], servos[3]);
 }
 
 void loop() {
-  readPhotos();
   if (Serial.available() > 0) {
     incomingByte = Serial.read();
-    //    Serial.println(incomingByte);
-    if (nextAxis != 0) {
-      useNextAxis();
+    performInputChecks(incomingByte);
+  }
+  readPhotos();
+}
+
+void performInputChecks(int incoming) {
+  checkTogglePower(incoming);
+  checkTogglePhotos(incoming);
+  if (nextAxis != 0) {
+    useNextAxis();
+  } else {
+    checkCurrentAxis();
+  }
+}
+
+void checkTogglePower(int incoming) {
+  if (incoming == byte_power) {
+    if (arm.isPoweredOn()) {
+      arm.stopArm();
     } else {
-      checkCurrentAxis();
+      arm.begin(servos[0], servos[1], servos[2], servos[3]);
     }
   }
 }
+
+void checkTogglePhotos(int incoming) {
+  if (incoming == byte_photo) {
+    if (!photosIsActive) {
+      startPhotoResistors();
+    } else {
+      stopPhotoResistors();
+    }
+  }
+}
+
 
 void useNextAxis() {
   int moveBy = 5;
@@ -76,16 +104,17 @@ void useNextAxis() {
         break;
       }
   }
-  Serial.println();
   Serial.print(arms[0]);
   Serial.print("\t");
   Serial.print(arms[1]);
   Serial.print("\t");
-  Serial.print(arms[2]);
-  if (arm.isReachable(arms[0], arms[1], arms[2])) {
-    arm.gotoPoint(arms[0], arms[1], arms[2]);
-  }
+  Serial.println(arms[2]);
 
+  /*if (arm.isReachable(arms[0], arms[1], arms[2])) {
+    arm.gotoPoint(arms[0], arms[1], arms[2]);
+    }*/
+
+  arm.unsafeGoToPoint(arms[0], arms[1], arms[2]);
   nextAxis = 0;
 }
 
@@ -103,44 +132,53 @@ void toggleGripper() {
 }
 
 void readPhotos() {
-  int lr0 = analogRead(phots[0]);
-  int lr1 = analogRead(phots[1]);
-  int lr2 = analogRead(phots[2]);
-  int x = map(photosAvg[0] - lr0, -100, 100, limits[0][0], limits[0][1]);
-  int y = map(photosAvg[1] - lr1, -100, 100, limits[1][0], limits[1][1]);
-  int z = map(photosAvg[2] - lr2, -100, 100, limits[2][0], limits[2][1]);
+  if (photosIsActive) {
+    const int range = 100;
+    int lr0 = analogRead(phots[0]);
+    int lr1 = analogRead(phots[1]);
+    int lr2 = analogRead(phots[2]);
+    int x = map(photosAvg[0] - lr0, -range, range, limits[0][0], limits[0][1]);
+    int y = map(photosAvg[1] - lr1, -range, range, limits[1][0], limits[1][1]);
+    int z = map(photosAvg[2] - lr2, -range, range, limits[2][0], limits[2][1]);
 
-  if (arm.isReachable(x, y, z)) {
-    arm.gotoPoint(x, y, z);
+    //  if (arm.isReachable(x, y, z)) {
+    //    arm.gotoPoint(x, y, z);
+    //  }
+    Serial.println("R PR");
+    delay(50);
   }
-  checkButton();
-  delay(50);
 }
 
 void checkButton() {
   int pushed = digitalRead(button);
-  Serial.println(pushed);
+  //  Serial.println(pushed);
   if (pushed == HIGH) {
     toggleGripper();
   }
 }
 
-void calibratePhotoResistors() {
+void startPhotoResistors() {
   for (int i = 0; i < calaCount; i++) {
     for (int j = 0; j < 3; j++) {
       int lightReading = analogRead(phots[j]);
       photosAvg[j] += lightReading;
-      Serial.print(photosAvg[j]);
-      Serial.print("\t");
+//      Serial.print(photosAvg[j], DEC);
+//      Serial.print("\t");
     }
-    Serial.println("\n============================");
+//    Serial.println("\n============================");
     delay(100);
   }
   for (int i = 0; i < 3; i++) {
     photosAvg[i] /= calaCount;
-    Serial.print(photosAvg[i]);
+    Serial.print(photosAvg[i], DEC);
     Serial.print("\t");
 
   }
   Serial.println("\n============================");
+  photosIsActive = true;
 }
+
+void stopPhotoResistors() {
+  photosIsActive = false;
+}
+
