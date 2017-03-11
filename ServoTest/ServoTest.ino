@@ -4,7 +4,7 @@
 #define byte_x 88
 #define byte_y 89
 #define byte_z 90
-#define byte_click 36
+#define byte_claw 36
 #define byte_plus 43
 #define byte_minus 45
 #define byte_power 115
@@ -47,6 +47,7 @@ void loop() {
 void performInputChecks(int incoming) {
   checkTogglePower(incoming);
   checkTogglePhotos(incoming);
+  checkToggleClaw(incoming);
   if (nextAxis != 0) {
     useNextAxis();
   } else {
@@ -74,6 +75,11 @@ void checkTogglePhotos(int incoming) {
   }
 }
 
+void checkToggleClaw(int incoming){
+  if (incoming == byte_claw) {
+    toggleGripper();
+  }
+}
 
 void useNextAxis() {
   int moveBy = 5;
@@ -81,10 +87,6 @@ void useNextAxis() {
     moveBy *= -1;
   }
   switch (nextAxis) {
-    case byte_click: {
-        toggleGripper();
-        break;
-      }
     case byte_x: {
         arms[0] = arms[0] + moveBy;
         arms[0] = constrain(arms[0], limits[0][0], limits[0][1]);

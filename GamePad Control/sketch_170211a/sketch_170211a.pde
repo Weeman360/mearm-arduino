@@ -19,7 +19,7 @@ ControlSlider slY;
 ControlSlider slZ;
 
 //byte references
-static int click = 36;
+static int claw = 36;
 static int moveX = 88;
 static int moveY = 89;
 static int moveZ = 90;
@@ -45,9 +45,6 @@ void setup() {
 
 void draw() { 
   readSerialPort();
-  //checkMouseMovement();
-  //checkMouseClicks();
-  //delay(50);
 }
 
 void checkMouseMovement() {  
@@ -77,10 +74,8 @@ void writeDirection(int dir, boolean positive) {
   }
 }
 
-void checkMouseClicks() {  
-  if (button != null && button.pressed()) {
-    myPort.write(click);
-  }
+void toggleClaw(){
+    myPort.write(claw);
 }
 
 void togglePower() {
@@ -115,6 +110,10 @@ void keyPressed() {
 
   if (key == 'l') {
     togglePhotoResistors();
+  }
+  
+  if (key == 'c'){
+    toggleClaw();
   }
 }
 
